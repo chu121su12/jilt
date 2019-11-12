@@ -1,0 +1,29 @@
+Bugs
+----
+- figure out what happens when the target class is generic
+- figure out the crash when running `gradle build` instead of `gradle clean build`
+
+Future
+------
+- add a `@Builder.generateGetters` attribute
+- enable Builder generation without source modifications (Builder(s)For annotations)
+- add the generation date to the @Generated annotation
+
+Possibly
+--------
+? split the project into 2 Gradle subprojects
+? check the required (non-optional) properties in classic Builder as well
+? `@Builder.enclosingInterface` attribute?
+? what about inheriting from the Builder class?
+
+Competition
+-----------
+- PojoBuilder (https://github.com/mkarneim/pojobuilder)
+    - weird behavior for constructor & method annotations (still scans the class for properties)
+    - doesn't have a notion of optional properties
+    - bad behavior for class annotation (uses no-arg constructors + setters)
+    - no type-safe Builder support
+- Jackdaw (https://github.com/vbauer/jackdaw) - for Android
+- Immutables
+- Google AutoCode
+- Google FreeBuilder
