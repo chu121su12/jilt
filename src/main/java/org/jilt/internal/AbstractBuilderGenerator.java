@@ -38,7 +38,6 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
 
     private final TypeElement targetClassType;
     private final List<? extends VariableElement> attributes;
-    private final Set<VariableElement> optionalAttributes;
     private final Builder builderAnnotation;
     private final ExecutableElement targetCreationMethod;
 
@@ -53,7 +52,6 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
 
         this.targetClassType = targetClass;
         this.attributes = attributes;
-        this.optionalAttributes = initOptionalAttributes();
         this.builderAnnotation = builderAnnotation;
         this.targetCreationMethod = targetCreationMethod;
 
@@ -340,27 +338,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         return ret.build();
     }
 
-    private Set<VariableElement> initOptionalAttributes() {
-        Set<VariableElement> ret = new HashSet<VariableElement>();
-        for (VariableElement attribute : attributes) {
-            if (this.determineIfAttributeIsOptional(attribute)) {
-                ret.add(attribute);
-            }
-        }
-        return ret;
-    }
-
-    private boolean determineIfAttributeIsOptional(VariableElement attribute) {
-        if (attribute.getAnnotation(Opt.class) != null) {
-            return true;
-        }
-        if (this.firstAnnotationCalledNullable(attribute) != null) {
-            return true;
-        }
-        return false;
-    }
-
-    private AnnotationMirror firstAnnotationCalledNullable(VariableElement attribute) {
+    protected final AnnotationMirror firstAnnotationCalledNullable(VariableElement attribute) {
         for (AnnotationMirror annotation : attribute.getAnnotationMirrors()) {
             if (annotationIsCalledNullable(annotation)) {
                 return annotation;
@@ -410,10 +388,6 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
 
     protected final List<? extends VariableElement> attributes() {
         return attributes;
-    }
-
-    protected final boolean isOptional(VariableElement attribute) {
-        return optionalAttributes.contains(attribute);
     }
 
     protected final String builderClassPackage() {

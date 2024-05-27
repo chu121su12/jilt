@@ -8,6 +8,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import org.jilt.Builder;
 import org.jilt.BuilderInterfaces;
+import org.jilt.Opt;
 import org.jilt.utils.Utils;
 
 import javax.annotation.processing.Filer;
@@ -17,15 +18,19 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 abstract class AbstractTypeSafeBuilderGenerator extends AbstractBuilderGenerator {
+    private final Set<VariableElement> optionalAttributes;
     private final BuilderInterfaces builderInterfaces;
 
     AbstractTypeSafeBuilderGenerator(TypeElement targetClass, List<? extends VariableElement> attributes,
             Builder builderAnnotation, BuilderInterfaces builderInterfaces,
             ExecutableElement targetCreationMethod, Elements elements, Filer filer) {
         super(targetClass, attributes, builderAnnotation, targetCreationMethod, elements, filer);
+        this.optionalAttributes = this.initOptionalAttributes(attributes);
         this.builderInterfaces = builderInterfaces;
     }
 
@@ -68,6 +73,10 @@ abstract class AbstractTypeSafeBuilderGenerator extends AbstractBuilderGenerator
 
     protected final String interfaceNameForAttribute(VariableElement attribute) {
         return interfaceNameFromBaseName(Utils.capitalize(attributeSimpleName(attribute)));
+    }
+
+    protected final boolean isOptional(VariableElement attribute) {
+        return optionalAttributes.contains(attribute);
     }
 
     protected final MethodSpec generateInterfaceSetterMethod(VariableElement attribute,
@@ -136,6 +145,26 @@ abstract class AbstractTypeSafeBuilderGenerator extends AbstractBuilderGenerator
     protected final VariableElement nextAttribute(int index) {
         int i = index + 1;
         return i < attributes().size() ? attributes().get(i) : null;
+    }
+
+    private Set<VariableElement> initOptionalAttributes(List<? extends VariableElement> attributes) {
+        Set<VariableElement> ret = new HashSet<VariableElement>();
+        for (VariableElement attribute : attributes) {
+            if (this.determineIfAttributeIsOptional(attribute)) {
+                ret.add(attribute);
+            }
+        }
+        return ret;
+    }
+
+    private boolean determineIfAttributeIsOptional(VariableElement attribute) {
+        if (attribute.getAnnotation(Opt.class) != null) {
+            return true;
+        }
+        if (this.firstAnnotationCalledNullable(attribute) != null) {
+            return true;
+        }
+        return false;
     }
 
     private String interfaceNameFromBaseName(String baseName) {
