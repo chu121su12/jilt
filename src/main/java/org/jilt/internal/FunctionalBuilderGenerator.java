@@ -30,7 +30,7 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
                 .addAnnotation(this.generatedAnnotation())
                 .addModifiers(Modifier.PUBLIC);
 
-        // generate a separate interface
+        // generate a separate interface for each required property
         boolean hasOptionalAttribute = false;
         for (VariableElement currentAttribute : this.attributes()) {
             if (this.isOptional(currentAttribute)) {
@@ -54,8 +54,46 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
     }
 
     @Override
+    protected MethodSpec makeStaticFactoryMethod() {
+        MethodSpec.Builder method = MethodSpec
+                .methodBuilder(this.builderFactoryMethodName())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addTypeVariables(this.builderClassTypeParameters())
+                .returns(this.targetClassTypeName());
+
+        // parameters
+        boolean hasOptionalAttribute = false;
+        for (VariableElement currentAttribute : this.attributes()) {
+            if (this.isOptional(currentAttribute)) {
+                hasOptionalAttribute = true;
+            } else {
+                method.addParameter(ParameterSpec
+                        .builder(this.returnTypeForSetterFor(currentAttribute, false),
+                                this.attributeSimpleName(currentAttribute))
+                        .build());
+            }
+        }
+        if (hasOptionalAttribute) {
+            // ToDo add handling of optional properties
+        }
+
+        // calling the setters
+        method.addStatement("$1T builder = new $1T()", this.builderClassTypeName());
+        for (VariableElement currentAttribute : this.attributes()) {
+            if (this.isOptional(currentAttribute)) {
+                continue;
+            }
+            method.addStatement("$N.accept(builder)", this.attributeSimpleName(currentAttribute));
+        }
+
+        return method
+                .addStatement("return builder.$N()", this.buildMethodName())
+                .build();
+    }
+
+    @Override
     protected TypeName builderFactoryMethodReturnType() {
-        return this.builderClassTypeName();
+        throw new UnsupportedOperationException("FunctionalBuilderGenerator.builderFactoryMethodReturnType() should never be invoked");
     }
 
     @Override

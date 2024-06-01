@@ -1,25 +1,21 @@
 package org.jilt.test;
 
-import org.jilt.test.data.functional.SomeModel;
+import org.jilt.test.data.functional.LargeLanguageModel;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jilt.test.data.functional.SomeModelBuilder.maxOutputTokens;
-import static org.jilt.test.data.functional.SomeModelBuilder.modelName;
-import static org.jilt.test.data.functional.SomeModelBuilder.someModel;
-import static org.jilt.test.data.functional.SomeModelBuilder.temperature;
+import static org.jilt.test.data.functional.LargeLanguageModelBuilder.largeLanguageModel;
+import static org.jilt.test.data.functional.LargeLanguageModelBuilder.name;
 
 public class FunctionalBuilderTest {
     @Test
-    public void classic_functional_builder_works() {
-        SomeModel someModel = someModel(
-                maxOutputTokens(13),
-                temperature(36.6F),
-                modelName("my model")
+    public void func_builder_for_required_properties_works() {
+        LargeLanguageModel largeLanguageModel = largeLanguageModel(
+                name("my-name")
         );
 
-        assertThat(someModel.modelName).isEqualTo("my model");
-        assertThat(someModel.temperature).isEqualTo(36.6F);
-        assertThat(someModel.maxOutputTokens).isEqualTo(13);
+        assertThat(largeLanguageModel.name).isEqualTo("my-name");
+        assertThat(largeLanguageModel.temperature).isEqualTo(0.3F);
+        assertThat(largeLanguageModel.outputTokensLimit).isEqualTo(100);
     }
 }

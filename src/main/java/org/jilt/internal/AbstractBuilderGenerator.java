@@ -126,7 +126,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         return modifiers.toArray(new Modifier[]{});
     }
 
-    private MethodSpec makeStaticFactoryMethod() {
+    protected MethodSpec makeStaticFactoryMethod() {
         if (this.builderClassNeedsToBeAbstract()) {
             // if the Builder class has to be abstract,
             // don't generate a static factory method
@@ -444,7 +444,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         return this.elements.getPackageOf(this.targetClassType).getQualifiedName().toString();
     }
 
-    private String builderFactoryMethodName() {
+    protected final String builderFactoryMethodName() {
         String annotationFactoryMethod = this.builderAnnotation.factoryMethod();
         return annotationFactoryMethod.isEmpty()
                 ? Utils.deCapitalize(this.targetClassSimpleName().toString())
