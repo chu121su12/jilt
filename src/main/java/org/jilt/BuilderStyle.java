@@ -325,5 +325,10 @@ public enum BuilderStyle {
      * @see BuilderInterfaces
      * @since 1.4
      */
-    STAGED_PRESERVING_ORDER
+    STAGED_PRESERVING_ORDER,
+
+    /**
+     * To Do: write a description here
+     */
+    FUNCTIONAL
 }

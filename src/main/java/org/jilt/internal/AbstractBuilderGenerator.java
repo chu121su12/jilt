@@ -244,8 +244,8 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
                 /* abstractMethod */ false);
     }
 
-    protected final MethodSpec generateSetterMethod(VariableElement attribute, boolean mangleTypeParameters,
-            boolean abstractMethod) {
+    protected MethodSpec generateSetterMethod(VariableElement attribute,
+            boolean mangleTypeParameters, boolean abstractMethod) {
         String fieldName = this.attributeSimpleName(attribute);
         TypeName parameterType = this.attributeType(attribute, mangleTypeParameters);
         MethodSpec.Builder setter = MethodSpec
@@ -271,7 +271,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
 
     protected abstract TypeName returnTypeForSetterFor(VariableElement attribute, boolean withMangledTypeParameters);
 
-    private TypeName attributeType(VariableElement attribute,
+    protected final TypeName attributeType(VariableElement attribute,
             boolean withMangledTypeParameters) {
         TypeName ret = TypeName.get(attribute.asType());
         return withMangledTypeParameters ? this.mangleTypeName(ret) : ret;
@@ -328,9 +328,10 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
                 this.mangleTypeParameters(typeVariableName.bounds).toArray(new TypeName[]{}));
     }
 
-    private ParameterSpec setterParameterSpec(VariableElement attribute, TypeName parameterType) {
-        ParameterSpec.Builder ret = ParameterSpec.builder(parameterType,
-                this.attributeSimpleName(attribute));
+    protected final ParameterSpec setterParameterSpec(VariableElement attribute, TypeName parameterType) {
+        ParameterSpec.Builder ret = ParameterSpec
+                .builder(parameterType, this.attributeSimpleName(attribute))
+                .addModifiers(Modifier.FINAL);
         AnnotationMirror nullableAnnotation = this.firstAnnotationCalledNullable(attribute);
         if (nullableAnnotation != null) {
             ret.addAnnotation(AnnotationSpec.get(nullableAnnotation));

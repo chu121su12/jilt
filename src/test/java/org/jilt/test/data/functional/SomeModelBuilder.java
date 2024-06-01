@@ -1,4 +1,4 @@
-    package org.jilt.test.data.functional;
+package org.jilt.test.data.functional;
 
 public class SomeModelBuilder {
     public static interface Setter {
