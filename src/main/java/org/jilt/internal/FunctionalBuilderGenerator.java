@@ -108,8 +108,40 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
     }
 
     @Override
+    protected void addSuperInterfaces(TypeSpec.Builder builderClassBuilder) {
+        // check if we have an optional property
+        boolean hasOptionalAttribute = false;
+        for (VariableElement currentAttribute : this.attributes()) {
+            if (this.isOptional(currentAttribute)) {
+                hasOptionalAttribute = true;
+                break;
+            }
+        }
+        if (!hasOptionalAttribute) {
+            return;
+        }
+
+        // generate a static nested class that will contain the setters for the optional properties
+        TypeSpec.Builder optionalSettersClass = TypeSpec
+                .classBuilder(this.lastInterfaceName())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        for (VariableElement currentAttribute : this.attributes()) {
+            MethodSpec setterMethod = this.generateSetterMethod(currentAttribute, false, true);
+            if (setterMethod != null) {
+                optionalSettersClass.addMethod(setterMethod);
+            }
+        }
+        builderClassBuilder.addType(optionalSettersClass.build());
+    }
+
+    @Override
     protected MethodSpec generateSetterMethod(VariableElement attribute,
-            boolean mangleTypeParameters, boolean abstractMethod) {
+            boolean mangleTypeParameters, boolean handleOnlyOptionalAttributes) {
+        boolean attributeIsOptional = this.isOptional(attribute);
+        if (attributeIsOptional != handleOnlyOptionalAttributes) {
+            return null;
+        }
+
         String fieldName = this.attributeSimpleName(attribute);
         TypeName parameterType = this.attributeType(attribute, mangleTypeParameters);
         TypeName setterInterface = this.returnTypeForSetterFor(attribute, mangleTypeParameters);
@@ -140,10 +172,6 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
             returnTypeName = this.interfaceNameForAttribute(attribute);
         }
         return this.innerInterfaceNamed(returnTypeName, withMangledTypeParameters);
-    }
-
-    @Override
-    protected void addSuperInterfaces(TypeSpec.Builder builderClassBuilder) {
     }
 
     @Override

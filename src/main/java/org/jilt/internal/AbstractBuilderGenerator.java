@@ -13,7 +13,6 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import org.jilt.Builder;
-import org.jilt.Opt;
 import org.jilt.utils.Utils;
 
 import javax.annotation.processing.Filer;
@@ -28,9 +27,7 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 abstract class AbstractBuilderGenerator implements BuilderGenerator {
     private final Elements elements;
@@ -94,7 +91,10 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
                                 : Modifier.PRIVATE)
                     .build());
 
-            builderClassBuilder.addMethod(this.generateBuilderSetterMethod(attribute));
+            MethodSpec setterMethod = this.generateBuilderSetterMethod(attribute);
+            if (setterMethod != null) {
+                builderClassBuilder.addMethod(setterMethod);
+            }
         }
 
         // add the 'build' method
