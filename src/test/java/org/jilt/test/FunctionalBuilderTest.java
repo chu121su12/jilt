@@ -12,49 +12,49 @@ import static org.jilt.test.data.functional.LargeLanguageModelBuilder.name;
 public class FunctionalBuilderTest {
     @Test
     public void func_builder_for_only_required_properties_works() {
-        LargeLanguageModel largeLanguageModel = largeLanguageModel(
+        LargeLanguageModel llm = largeLanguageModel(
                 name("my-name")
         );
 
-        assertThat(largeLanguageModel.name).isEqualTo("my-name");
-        assertThat(largeLanguageModel.temperature).isEqualTo(0.3F);
-        assertThat(largeLanguageModel.outputTokensLimit).isEqualTo(100);
+        assertThat(llm.name).isEqualTo("my-name");
+        assertThat(llm.temperature).isEqualTo(0.3F);
+        assertThat(llm.outputTokensLimit).isEqualTo(100);
     }
 
     @Test
     public void func_builder_for_optional_properties_works() {
-        LargeLanguageModel largeLanguageModel = largeLanguageModel(
+        LargeLanguageModel llm = largeLanguageModel(
                 name(null),
                 temperature(41F),
                 outputTokensLimit(50)
         );
 
-        assertThat(largeLanguageModel.name).isNull();
-        assertThat(largeLanguageModel.temperature).isEqualTo(41);
-        assertThat(largeLanguageModel.outputTokensLimit).isEqualTo(50);
+        assertThat(llm.name).isNull();
+        assertThat(llm.temperature).isEqualTo(41);
+        assertThat(llm.outputTokensLimit).isEqualTo(50);
     }
 
     @Test
     public void func_builder_allows_skipping_middle_optional_property() {
-        LargeLanguageModel largeLanguageModel = largeLanguageModel(
+        LargeLanguageModel llm = largeLanguageModel(
                 name(""),
                 outputTokensLimit(50)
         );
 
-        assertThat(largeLanguageModel.name).isEmpty();
-        assertThat(largeLanguageModel.temperature).isEqualTo(0.3F);
-        assertThat(largeLanguageModel.outputTokensLimit).isEqualTo(50);
+        assertThat(llm.name).isEmpty();
+        assertThat(llm.temperature).isEqualTo(0.3F);
+        assertThat(llm.outputTokensLimit).isEqualTo(50);
     }
 
     @Test
     public void func_builder_allows_skipping_last_optional_property() {
-        LargeLanguageModel largeLanguageModel = largeLanguageModel(
+        LargeLanguageModel llm = largeLanguageModel(
                 name(" "),
                 temperature(41F)
         );
 
-        assertThat(largeLanguageModel.name).isEqualTo(" ");
-        assertThat(largeLanguageModel.temperature).isEqualTo(41F);
-        assertThat(largeLanguageModel.outputTokensLimit).isEqualTo(100);
+        assertThat(llm.name).isEqualTo(" ");
+        assertThat(llm.temperature).isEqualTo(41F);
+        assertThat(llm.outputTokensLimit).isEqualTo(100);
     }
 }

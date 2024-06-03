@@ -8,6 +8,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.jilt.Builder;
 import org.jilt.BuilderInterfaces;
+import org.jilt.utils.Utils;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.ExecutableElement;
@@ -75,30 +76,33 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
             }
         }
         TypeName optionalsSetterType = this.innerInterfaceNamed(this.lastInterfaceName(), false);
+        String optionalsParameterName = Utils.deCapitalize(this.lastInterfaceName());
         if (hasOptionalAttribute) {
             method.addParameter(ParameterSpec
-                            .builder(ArrayTypeName.of(optionalsSetterType), "optionals")
+                            .builder(ArrayTypeName.of(optionalsSetterType), optionalsParameterName + "s")
                             .build())
                     .varargs();
         }
 
         // calling the setters
-        method.addStatement("$1T builder = new $1T()", this.builderClassTypeName());
+        String builderVariableName = Utils.deCapitalize(this.builderClassStringName());
+        method.addStatement("$1T $2N = new $1T()", this.builderClassTypeName(), builderVariableName);
         for (VariableElement currentAttribute : this.attributes()) {
             if (this.isOptional(currentAttribute)) {
                 continue;
             }
-            method.addStatement("$N.accept(builder)", this.attributeSimpleName(currentAttribute));
+            method.addStatement("$N.accept($N)",
+                    this.attributeSimpleName(currentAttribute), builderVariableName);
         }
         if (hasOptionalAttribute) {
             method
-                    .beginControlFlow("for ($T optional : optionals)", optionalsSetterType)
-                    .addStatement("optional.accept(builder)")
+                    .beginControlFlow("for ($1T $2N : $2Ns)", optionalsSetterType, optionalsParameterName)
+                    .addStatement("$N.accept($N)", optionalsParameterName, builderVariableName)
                     .endControlFlow();
         }
 
         return method
-                .addStatement("return builder.$N()", this.buildMethodName())
+                .addStatement("return $N.$N()", builderVariableName, this.buildMethodName())
                 .build();
     }
 

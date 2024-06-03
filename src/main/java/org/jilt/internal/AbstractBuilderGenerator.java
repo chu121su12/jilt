@@ -161,9 +161,9 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
                         .build());
 
         CodeBlock.Builder methodBody = CodeBlock.builder();
-        String returnVarName = Utils.deCapitalize(this.builderClassClassName.simpleName());
-        methodBody.addStatement("$T $L = new $T()", this.builderClassTypeName(),
-                returnVarName, this.builderClassTypeName());
+        String returnVarName = Utils.deCapitalize(this.builderClassStringName());
+        methodBody.addStatement("$1T $2N = new $1T()", this.builderClassTypeName(),
+                returnVarName);
         // iterate through all attributes,
         // and add a setter statement to the method body for each
         for (VariableElement attribute : attributes) {
