@@ -1,5 +1,6 @@
 package org.jilt.internal;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -73,8 +74,12 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
                         .build());
             }
         }
+        TypeName optionalsSetterType = this.innerInterfaceNamed(this.lastInterfaceName(), false);
         if (hasOptionalAttribute) {
-            // ToDo add handling of optional properties
+            method.addParameter(ParameterSpec
+                            .builder(ArrayTypeName.of(optionalsSetterType), "optionals")
+                            .build())
+                    .varargs();
         }
 
         // calling the setters
@@ -84,6 +89,12 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
                 continue;
             }
             method.addStatement("$N.accept(builder)", this.attributeSimpleName(currentAttribute));
+        }
+        if (hasOptionalAttribute) {
+            method
+                    .beginControlFlow("for ($T optional : optionals)", optionalsSetterType)
+                    .addStatement("optional.accept(builder)")
+                    .endControlFlow();
         }
 
         return method
