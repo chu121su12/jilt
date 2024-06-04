@@ -147,6 +147,16 @@ abstract class AbstractTypeSafeBuilderGenerator extends AbstractBuilderGenerator
         return i < attributes().size() ? attributes().get(i) : null;
     }
 
+    protected final String interfaceNameFromBaseName(String baseName) {
+        String namesPattern = builderInterfaces == null
+                ? ""
+                : builderInterfaces.innerNames();
+
+        return namesPattern.isEmpty()
+                ? baseName
+                : namesPattern.replaceAll("\\*", baseName);
+    }
+
     private Set<VariableElement> initOptionalAttributes(List<? extends VariableElement> attributes) {
         Set<VariableElement> ret = new HashSet<VariableElement>();
         for (VariableElement attribute : attributes) {
@@ -165,15 +175,5 @@ abstract class AbstractTypeSafeBuilderGenerator extends AbstractBuilderGenerator
             return true;
         }
         return false;
-    }
-
-    private String interfaceNameFromBaseName(String baseName) {
-        String namesPattern = builderInterfaces == null
-                ? ""
-                : builderInterfaces.innerNames();
-
-        return namesPattern.isEmpty()
-                ? baseName
-                : namesPattern.replaceAll("\\*", baseName);
     }
 }

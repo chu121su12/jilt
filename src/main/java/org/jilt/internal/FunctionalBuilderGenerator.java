@@ -1,6 +1,8 @@
 package org.jilt.internal;
 
 import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -32,6 +34,18 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
                 .addAnnotation(this.generatedAnnotation())
                 .addModifiers(Modifier.PUBLIC);
 
+        // generate interface for base setter
+        String baseSetterInterfaceName = this.baseSetterInterfaceName();
+        TypeSpec baseSetterInterface = TypeSpec.interfaceBuilder(baseSetterInterfaceName)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addTypeVariables(this.builderClassTypeParameters())
+                .addMethod(MethodSpec.methodBuilder("accept")
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(this.setterBuilderParameter())
+                        .build())
+                .build();
+        outerInterfacesBuilder.addType(baseSetterInterface);
+
         // generate a separate interface for each required property
         boolean hasOptionalAttribute = false;
         for (VariableElement currentAttribute : this.attributes()) {
@@ -39,14 +53,14 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
                 hasOptionalAttribute = true;
             } else {
                 outerInterfacesBuilder.addType(this.functionalSetterInterface(
-                        this.interfaceNameForAttribute(currentAttribute)));
+                        this.interfaceNameForAttribute(currentAttribute), baseSetterInterfaceName));
             }
         }
         // if there's an optional attribute,
         // generate an interface for optional setters
         if (hasOptionalAttribute) {
             outerInterfacesBuilder.addType(this.functionalSetterInterface(
-                    this.lastInterfaceName()));
+                    this.lastInterfaceName(), baseSetterInterfaceName));
         }
 
         JavaFile javaFile = JavaFile
@@ -183,14 +197,62 @@ final class FunctionalBuilderGenerator extends AbstractTypeSafeBuilderGenerator 
         return "Optional";
     }
 
-    private TypeSpec functionalSetterInterface(String interfaceName) {
+    @Override
+    protected MethodSpec makeToBuilderMethod() {
+        MethodSpec toBuilderSuperMethod = super.makeToBuilderMethod();
+        if (toBuilderSuperMethod == null) {
+            return null;
+        }
+
+        String targetClassParam = Utils.deCapitalize(this.targetClassSimpleName().toString());
+        String baseSetterInterfaceParam = Utils.deCapitalize(this.baseSetterInterfaceName());
+        TypeName baseSetterInterface = this.innerInterfaceNamed(this.baseSetterInterfaceName());
+        MethodSpec.Builder toBuilderMethod = MethodSpec
+                .methodBuilder(toBuilderSuperMethod.name)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addTypeVariables(this.builderClassTypeParameters())
+                .returns(this.targetClassTypeName())
+                .addParameter(ParameterSpec
+                        .builder(this.targetClassTypeName(), targetClassParam)
+                        .build())
+                .addParameter(ParameterSpec
+                        .builder(ArrayTypeName.of(baseSetterInterface), baseSetterInterfaceParam + "s")
+                        .build())
+                .varargs();
+
+        CodeBlock.Builder methodBody = CodeBlock.builder();
+        String returnVarName = Utils.deCapitalize(this.builderClassStringName());
+        methodBody.addStatement("$1T $2N = new $1T()", this.builderClassTypeName(),
+                returnVarName);
+        // iterate through all attributes,
+        // and add a setter statement to the method body for each
+        for (VariableElement attribute : this.attributes()) {
+            String attributeAccess = this.accessAttributeOfTargetClass(attribute);
+            methodBody.addStatement("$L.$L = $L.$L",
+                    returnVarName,
+                    this.setterMethodName(attribute),
+                    targetClassParam, attributeAccess);
+        }
+        methodBody
+                .beginControlFlow("for ($1T $2N : $2Ns)", baseSetterInterface, baseSetterInterfaceParam)
+                .addStatement("$N.accept($N)", baseSetterInterfaceParam, returnVarName)
+                .endControlFlow();
+        methodBody.addStatement("return $N.$N()", returnVarName, this.buildMethodName());
+
+        return toBuilderMethod
+                .addCode(methodBody.build())
+                .build();
+    }
+
+    private String baseSetterInterfaceName() {
+        return this.interfaceNameFromBaseName("Base");
+    }
+
+    private TypeSpec functionalSetterInterface(String interfaceName, String baseSetterInterfaceName) {
         return TypeSpec.interfaceBuilder(interfaceName)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .addTypeVariables(this.builderClassTypeParameters())
-                .addMethod(MethodSpec.methodBuilder("accept")
-                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                        .addParameter(this.setterBuilderParameter())
-                        .build())
+                .addSuperinterface(ClassName.get(this.outerInterfacesName(), baseSetterInterfaceName))
                 .build();
     }
 

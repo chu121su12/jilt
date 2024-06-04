@@ -143,7 +143,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
                 .build();
     }
 
-    private MethodSpec makeToBuilderMethod() {
+    protected MethodSpec makeToBuilderMethod() {
         // if the @Builder annotation has an empty toBuilder attribute,
         // don't generate this method
         if (this.builderAnnotation.toBuilder().isEmpty()) {
@@ -202,7 +202,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         return buildMethod.build();
     }
 
-    private String accessAttributeOfTargetClass(VariableElement attribute) {
+    protected final String accessAttributeOfTargetClass(VariableElement attribute) {
         String fieldName = this.attributeSimpleName(attribute);
         for (Element member : this.elements.getAllMembers(this.targetClassType)) {
             // if there's a getter method, use it
@@ -377,7 +377,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         return filer;
     }
 
-    private Name targetClassSimpleName() {
+    protected final Name targetClassSimpleName() {
         return this.targetClassType.getSimpleName();
     }
 

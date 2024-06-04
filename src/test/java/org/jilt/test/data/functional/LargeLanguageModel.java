@@ -4,7 +4,7 @@ import org.jilt.Builder;
 import org.jilt.BuilderStyle;
 import org.jilt.Opt;
 
-@Builder(style = BuilderStyle.FUNCTIONAL)
+@Builder(style = BuilderStyle.FUNCTIONAL, toBuilder = "toBuilder", buildMethod = "create")
 public final class LargeLanguageModel {
     public final String name;
     @Opt public final Float temperature;
