@@ -1,9 +1,11 @@
 package org.jilt.test.data.functional;
 
 import org.jilt.Builder;
+import org.jilt.BuilderInterfaces;
 import org.jilt.BuilderStyle;
 
 @Builder(style = BuilderStyle.FUNCTIONAL, toBuilder = "toBuilder", buildMethod = "create")
+@BuilderInterfaces(outerName = "LargeLanguageModelBuilderInterfaces")
 public final class LargeLanguageModel {
     public final String name;
     public final float temperature;
