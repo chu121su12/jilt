@@ -231,6 +231,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Builder {
     /**
+     * Generate a static String field that contains the field name
+     * <p>
+     * This is an optional attribute - the default is <code>false</code>.
+     */
+    boolean staticFieldNames() default false;
+
+    /**
      * Allows declaring what variant of the Builder pattern will the generated class conform to.
      * See {@link BuilderStyle} for the possible values.
      * <p>
