@@ -93,11 +93,18 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
             TypeName fieldType = TypeName.get(attribute.asType());
 
             builderClassBuilder.addField(FieldSpec
-                    .builder(fieldType, fieldName,
+                    .builder(fieldType, "_" + fieldName,
                             this.builderClassNeedsToBeAbstract()
                                 ? Modifier.PROTECTED
                                 : Modifier.PRIVATE)
                     .build());
+
+            if (builderAnnotation.staticFieldNames() && !this.builderClassNeedsToBeAbstract()) {
+                builderClassBuilder.addField(FieldSpec
+                        .builder(String.class, fieldName, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("$S", fieldName)
+                        .build());
+            }
 
             MethodSpec setterMethod = this.generateBuilderSetterMethod(attribute);
             if (setterMethod != null) {
@@ -274,7 +281,7 @@ abstract class AbstractBuilderGenerator implements BuilderGenerator {
         if (abstractMethod) {
             setter.addModifiers(Modifier.ABSTRACT);
         } else {
-            setter.addStatement("this.$1L = $1L", fieldName)
+            setter.addStatement("this._$1L = $1L", fieldName)
                     .addStatement("return this");
         }
 
